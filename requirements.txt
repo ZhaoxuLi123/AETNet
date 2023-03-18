@@ -1,0 +1,6 @@
+torch
+kornia
+sklearn
+timm
+einops
+scikit-image
