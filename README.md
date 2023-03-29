@@ -45,9 +45,9 @@ If the work or the code is helpful, please cite the paper:
   journal={IEEE Transactions on Geoscience and Remote Sensing}, 
   title={You Only Train Once: Learning a General Anomaly Enhancement Network with Random Masks for Hyperspectral Anomaly Detection}, 
   year={2023},
-  volume={},
+  volume={61},
   number={},
-  pages={1-1},
+  pages={1-18},
   doi={10.1109/TGRS.2023.3258067}}
 ```
 
