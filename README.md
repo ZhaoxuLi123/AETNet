@@ -34,6 +34,8 @@ python train.py
 python test.py 
 ```
 
+###Result
+All the test results and evaluation code can be downloaded from [Baidu Disk](https://pan.baidu.com/s/1uBCZ9uUHsDAz8hturS-mxw?pwd=1234) (code:1234) or [Google Drive](https://drive.google.com/file/d/1d4Lr1jqD7hzhTpIWIU-49smFa14RREEe/view?usp=sharing).
 
 ## Citation
 
