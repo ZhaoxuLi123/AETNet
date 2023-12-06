@@ -63,8 +63,16 @@ class AETNet(nn.Module):
         # Encoder
         self.encoder_layers = nn.ModuleList([])
         dim_stage = dim
-        self.pad_add =(8-(2 * self.pad + image_size) % 8)%8
-        size_stage = image_size+2*pad + self.pad_add  # input size should be multiples of 8
+        # self.pad_add =(8-(2 * self.pad + image_size) % 8)%8
+        # size_stage = image_size+2*pad + self.pad_add  # input size should be multiples of 8
+        feasible_size_list =[32, 40, 48, 64, 72, 80, 96, 128, 144, 160]
+        size_stage = image_size+2*self.pad
+        for feasible_size in feasible_size_list:
+            if size_stage not in feasible_size_list:
+                if size_stage<=feasible_size:
+                    size_stage = feasible_size
+                    self.pad_add = size_stage -image_size-2*self.pad
+            
         for i in range(self.stage):
             self.encoder_layers.append(nn.ModuleList([
                 Transformer(
@@ -118,7 +126,7 @@ class AETNet(nn.Module):
 
         # Padding
 
-        x = F.pad(x, [self.pad, self.pad, self.pad+self.pad_add, self.pad+self.pad_add], mode='reflect')
+        x = F.pad(x, [self.pad, self.pad+self.pad_add, self.pad, self.pad+self.pad_add], mode='reflect')
 
         # Convolutional Encoder
         fea = self.conv_encoder(x)
