@@ -67,6 +67,7 @@ class AETNet(nn.Module):
         # size_stage = image_size+2*pad + self.pad_add  # input size should be multiples of 8
         feasible_size_list =[32, 40, 48, 64, 72, 80, 96, 128, 144, 160]
         size_stage = image_size+2*self.pad
+        self.pad_add = 0
         for feasible_size in feasible_size_list:
             if size_stage not in feasible_size_list:
                 if size_stage<=feasible_size:
