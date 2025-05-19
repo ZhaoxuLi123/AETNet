@@ -1,9 +1,14 @@
+import numpy as np
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+from einops import rearrange
+import math
+import warnings
+from torch.nn.init import _calculate_fan_in_and_fan_out
 from models.swin import SwinTransformerBlock
 from models.spectralTransformer import SpectralTransformerBlock
-from timm.models.layers import  trunc_normal_
+from timm.models.layers import DropPath, to_2tuple, trunc_normal_, lecun_normal_
 
 
 class Transformer(nn.Module):
@@ -38,7 +43,8 @@ class Transformer(nn.Module):
         return out: [b,c,h,w]
         """
         x = x.permute(0, 2, 3, 1)
-        for (_, w_swin, sw_swin,_) in self.blocks:
+        for (spect, w_swin, sw_swin,_) in self.blocks:
+            # x = spect(x)
             x = w_swin(x)
             x = sw_swin(x)
         out = x.permute(0, 3, 1, 2)
@@ -59,26 +65,18 @@ class AETNet(nn.Module):
         self.pad = pad
         # Convolutional Encoder
         self.conv_encoder = nn.Conv2d(in_dim, self.dim, 3, 1, 1, bias=False)
-
+        # self.conv_encoder = nn.Conv2d(in_dim, self.dim, 1, 1, 0, bias=False)
         # Encoder
         self.encoder_layers = nn.ModuleList([])
         dim_stage = dim
-        # self.pad_add =(8-(2 * self.pad + image_size) % 8)%8
-        # size_stage = image_size+2*pad + self.pad_add  # input size should be multiples of 8
-        feasible_size_list =[32, 40, 48, 64, 72, 80, 96, 128, 144, 160]
-        size_stage = image_size+2*self.pad
+        size_stage = image_size + 2 * self.pad
+        assert size_stage % 8 == 0
         self.pad_add = 0
-        for feasible_size in feasible_size_list:
-            if size_stage not in feasible_size_list:
-                if size_stage<=feasible_size:
-                    size_stage = feasible_size
-                    self.pad_add = size_stage -image_size-2*self.pad
-            
         for i in range(self.stage):
             self.encoder_layers.append(nn.ModuleList([
                 Transformer(
                     dim=dim_stage, num_blocks=num_blocks[i], dim_head=dim, st_heads=dim_stage // dim, input_resolution=[size_stage,size_stage] ,
-            swin_heads= swin_heads_list[i]),
+            swin_heads=swin_heads_list[i]),
                 nn.Conv2d(dim_stage, dim_stage * 2, 4, 2, 1, bias=False),
             ]))
             dim_stage *= 2
@@ -105,7 +103,7 @@ class AETNet(nn.Module):
 
         # Convolutional Decoder
         self.conv_decoder = nn.Conv2d(self.dim, in_dim, 3, 1, 1, bias=False)
-
+        # self.conv_decoder = nn.Conv2d(self.dim, in_dim, 1, 1, 0, bias=False)
 
         self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
         self.apply(self._init_weights)
@@ -126,9 +124,14 @@ class AETNet(nn.Module):
         """
 
         # Padding
-
-        x = F.pad(x, [self.pad, self.pad+self.pad_add, self.pad, self.pad+self.pad_add], mode='reflect')
-
+        b, c, h, w = x.shape
+        h_add = math.ceil((h + self.pad*2)/72)*72 - h - self.pad*2
+        h_add1 = math.floor(h_add/2)
+        h_add2 = h_add-h_add1
+        w_add = math.ceil((w + self.pad*2)/72)*72 - w - self.pad*2
+        w_add1 = math.floor(w_add/2)
+        w_add2 = w_add-w_add1
+        x = F.pad(x, [self.pad+h_add1, self.pad+h_add2, self.pad+w_add1, self.pad+w_add2], mode='reflect')
         # Convolutional Encoder
         fea = self.conv_encoder(x)
         # Swin Unet Encoder
@@ -152,5 +155,5 @@ class AETNet(nn.Module):
         # Convolutional Decoder
         res = self.conv_decoder(fea)
         out = res + x
-        out =  out[:, :, self.pad:-(self.pad+self.pad_add), self.pad:-(self.pad+self.pad_add)]
+        out = out[:, :, (self.pad+h_add1):-(self.pad+h_add2), (self.pad+w_add1):-(self.pad+w_add2)]
         return out

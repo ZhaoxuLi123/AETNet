@@ -6,6 +6,8 @@ This is the official repository for  [“You Only Train Once: Learning a General
 
 In this paper, we introduce a new approach to address the challenge of generalization in hyperspectral anomaly detection (AD). Our method eliminates the need for adjusting parameters or retraining on new test scenes as required by most existing methods. Employing an image-level training paradigm, we achieve a general anomaly enhancement network for hyperspectral AD that only needs to be trained once. Trained on a set of anomaly-free hyperspectral images with random masks, our network can learn the spatial context characteristics between anomalies and background in an unsupervised way. Additionally, a plug-and-play model selection module is proposed to search for a spatial-spectral transform domain that is more suitable for AD task than the original data. To establish a unified benchmark to comprehensive evaluate our method and existing methods, we develop a large-scale hyperspectral AD dataset (HAD100) that includes 100 real test scenes with diverse anomaly targets. In comparison experiments, we combine our network with a parameter-free detector, and achieve the optimal balance between detection accuracy and inference speed among state-of-the-art AD methods. Experimental results also show that our method still achieves competitive performance when the training and test set are captured by different sensor devices.
 
+## News & Updates
+* **May 20, 2025:** We have fixed a defect in ANTNet that it could only handle hyperspectral images of fixed sizes. **Now, the pre-trained models we provide can process images of any band and any size.** We have demonstrated this with the Sandiego dataset and ABU dataset in detect_any_HSI.py.
 
 
 ## Getting Started
@@ -29,10 +31,14 @@ In this paper, we introduce a new approach to address the challenge of generaliz
 python train.py
 ```
 
-### Test
+### Inference on Test Images of HAD100 Dataset 
 ```shell
 python test.py 
 ```
+### Inference on Any Image
+
+Replace the img_data in detect_any_HSI.py with the image to be detected.
+
 
 ### Result
 All the test results and evaluation code can be downloaded from [Baidu Disk](https://pan.baidu.com/s/1uBCZ9uUHsDAz8hturS-mxw?pwd=1234) (code:1234) or [Google Drive](https://drive.google.com/file/d/1d4Lr1jqD7hzhTpIWIU-49smFa14RREEe/view?usp=sharing).
