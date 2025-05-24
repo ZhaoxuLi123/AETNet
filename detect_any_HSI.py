@@ -10,7 +10,7 @@ from scipy.stats import entropy
 
 
 def calculate_entropy(band):
-    hist, _ = np.histogram(band, bins=256, range=(0, 1))  # 假设数据归一化到 [0,1]
+    hist, _ = np.histogram(band, bins=256, range=(0, 1))  
     prob = hist / hist.sum()
     return entropy(prob)
 
@@ -26,16 +26,15 @@ def data_preprocess(channel, data, band_choose='order'):
         if band_choose == 'order':
             x = data[:, :, :channel]
         elif band_choose == 'std':
-            band_variances = np.var(data, axis=(0, 1))  # 沿空间维度计算方差
-            # 按方差从大到小排序，选择前N个波段
-            selected_band_indices = np.argsort(band_variances)[:channel]  # 获取索引
+            band_variances = np.var(data, axis=(0, 1)) 
+            selected_band_indices = np.argsort(band_variances)[:channel] 
             x = data[:, :, selected_band_indices]
         elif band_choose == 'entropy':
             band_entropies = np.array([calculate_entropy(data[:, :, i]) for i in range(b)])
             selected_band_indices = np.argsort(band_entropies)[:channel]
             x = data[:, :,selected_band_indices]
         elif band_choose == 'low_correlation':
-            data_2d = data.reshape(-1, b)  # 形状 (n_samples, n_bands)
+            data_2d = data.reshape(-1, b) 
             correlation_matrix = np.corrcoef(data_2d, rowvar=False)
             band_correlation_scores = np.sum(np.abs(correlation_matrix), axis=1)
             selected_band_indices = np.argsort(band_correlation_scores)[:channel]
